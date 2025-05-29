@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <stdexcept>
 #include <byteswap.h>
+#include <unordered_set>
 
 // Структура точки
 struct Point {
@@ -27,6 +28,7 @@ public:
 
 class TxtParser : public IParser {
 public:
+    std::unordered_set<std::string> seen_groups;
     std::vector<Point> parse(const std::string& filepath) override {
         std::ifstream file(filepath);
         if (!file) throw std::runtime_error("Cannot open " + filepath);
@@ -42,9 +44,17 @@ public:
                 throw std::runtime_error("Bad format in " + filepath);
             Point p;
             p.group = line.substr(0, colon);
+            p.group = line.substr(0, colon);
+            // Проверка на дублирующиеся группы
+            if (!seen_groups.insert(p.group).second)
+                throw std::runtime_error("Duplicate group in TXT file: " + filepath);
+
             p.x = std::stoi(line.substr(colon + 1, comma - colon - 1));
             p.y = std::stoi(line.substr(comma + 1));
             p.file = filepath;
+            // Только положительные координаты
+            if (p.x < 0 || p.y < 0)
+                throw std::runtime_error("Negative coordinates in " + filepath);
             points.push_back(p);
         }
         return points;
@@ -53,6 +63,7 @@ public:
 
 class BinParser : public IParser {
 public:
+    std::unordered_set<uint32_t> seen_groups;
     std::vector<Point> parse(const std::string& filepath) override {
         std::ifstream file(filepath, std::ios::binary);
         if (!file) throw std::runtime_error("Cannot open " + filepath);
@@ -66,6 +77,10 @@ public:
 
             // Извлечение полей по битам
             uint32_t group = (entry >> 24) & 0xFF;    // старшие 8 бит
+            // Проверка на дублирующиеся группы
+            if (!seen_groups.insert(group).second)
+                throw std::runtime_error("Duplicate group in BIN file: " + filepath);
+
             uint32_t x     = (entry >> 12) & 0xFFF;   // средние 12 бит
             uint32_t y     = entry & 0xFFF;           // младшие 12 бит
 
@@ -78,6 +93,7 @@ public:
 
 class JsonParser : public IParser {
 public:
+    std::unordered_set<std::string> seen_groups;
     std::vector<Point> parse(const std::string& filepath) override {
         std::ifstream file(filepath);
         if (!file) throw std::runtime_error("Cannot open " + filepath);
@@ -105,8 +121,14 @@ public:
 
             // Извлечение значений
             std::string group = extractString(obj, g1);
+            // Проверка на дублирующиеся группы
+            if (!seen_groups.insert(group).second)
+                throw std::runtime_error("Duplicate group in JSON file: " + filepath);
             int x = extractInt(obj, x1);
             int y = extractInt(obj, y1);
+            if (x < 0 || y < 0)
+                throw std::runtime_error("Negative coordinates in " + filepath);
+
             // Добавление точки
             points.push_back({group, x, y, filepath});
             pos = end + 1;
