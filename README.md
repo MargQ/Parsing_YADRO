@@ -43,17 +43,17 @@ struct PointToFile {
 ## Структура проекта
 
 Parsing_YADRO/
-├── src/                     # Исходник
+├── src/
 │   ├── main.cpp
 ├── scripts/
-│   ├── script.sh            # Скрипт запуска программы
-│   └── plot.py              # Построение графика
-├── files/                   # Примеры входных файлов
+│   ├── script.sh
+│   └── plot.py
+├── files/
 │   ├── file1.txt
 │   ├── file2.json
 │   └── file3.bin
-├── CMakeLists.txt           # CMake конфигурация
-├── build_my_project.sh      # Скрипт для сборки и установки проекта
+├── CMakeLists.txt
+├── build_my_project.sh
 ├── README.md
 
 ## Инструкция по сборке
