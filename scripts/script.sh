@@ -7,7 +7,7 @@ CXX_PROGRAM="$BIN_DIR/parser"
 PY_SCRIPT="$BIN_DIR/plot.py"
 
 if [[ $# -eq 0 ]]; then
-  echo "Usage: $0 <file1> [file2 ...]"
+  echo "Usage: $0 file1 file2 ...
   exit 1
 fi
 
